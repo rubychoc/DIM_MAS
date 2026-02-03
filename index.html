@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coalition Formation Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        .controls {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            height: fit-content;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        input[type="number"], input[type="range"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        
+        input[type="range"] {
+            padding: 0;
+        }
+        
+        .range-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-primary:disabled, .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .visualization {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .grid-container {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+        }
+        
+        #simulation-grid {
+            width: 100%;
+            display: block;
+        }
+        
+        .groups-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .group-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+        
+        .group-header {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .group-members {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .student-badge {
+            background: white;
+            border: 2px solid #667eea;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .student-badge.leader {
+            background: #667eea;
+            color: white;
+        }
+        
+        .negotiations-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .negotiation-item {
+            background: white;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        
+        .negotiation-item.offer {
+            border-left-color: #28a745;
+        }
+        
+        .negotiation-item.reject {
+            border-left-color: #dc3545;
+        }
+        
+        .negotiation-item.accept {
+            border-left-color: #007bff;
+        }
+        
+        .negotiation-item.merge {
+            border-left-color: #17a2b8;
+            font-weight: 600;
+        }
+        
+        .entity-label {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+        
+        .utility-score {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s;
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .modal-header h2 {
+            font-size: 2.5em;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .modal-header p {
+            font-size: 1.2em;
+            color: #666;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .modal-buttons button {
+            width: auto;
+            padding: 15px 30px;
+            margin: 0;
+        }
+        
+        .detailed-groups {
+            display: none;
+        }
+        
+        .detailed-groups.show {
+            display: block;
+        }
+        
+        .detailed-group-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .detailed-group-header {
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .member-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .member-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .member-card.leader {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+        }
+        
+        .member-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .trait-item {
+            margin: 8px 0;
+            font-size: 0.9em;
+        }
+        
+        .trait-label {
+            font-weight: 600;
+            color: #666;
+            display: inline-block;
+            width: 100px;
+        }
+        
+        .trait-value {
+            color: #333;
+        }
+        
+        .skills-bar {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
+        .skill-bar {
+            flex: 1;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .skill-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+        
+        .skill-label {
+            font-size: 0.7em;
+            color: #666;
+            text-align: center;
+            margin-top: 2px;
+        }
+        
+        .friends-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
+        .friend-badge {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 Coalition Formation Simulator</h1>
+            <p class="subtitle">Decentralized Multi-Agent System for Optimal Group Formation</p>
+        </header>
+        
+        <div class="content">
+            <div class="controls">
+                <h2 style="margin-bottom: 20px;">⚙️ Simulation Parameters</h2>
+                
+                <div class="control-group">
+                    <label>Number of Students</label>
+                    <input type="number" id="n-students" value="20" min="4" max="50">
+                </div>
+                
+                <div class="control-group">
+                    <label>Target Group Size (k)</label>
+                    <input type="number" id="k-size" value="4" min="2" max="10">
+                </div>
+                
+                <div class="control-group">
+                    <label>Grid Size
+                        <span style="font-weight: normal; font-size: 0.85em; color: #666;">ℹ️</span>
+                    </label>
+                    <input type="number" id="grid-size" value="10" min="5" max="20">
+                    <small style="color: #666; font-size: 0.85em; display: block; margin-top: 5px;">
+                        Dimensions of the space where entities move. Larger = more spread out, slower discovery.
+                    </small>
+                </div>
+                
+                <div class="control-group">
+                    <label>Simulation Time (seconds)</label>
+                    <input type="number" id="total-time" value="100" min="30" max="300" step="10">
+                    <small style="color: #666; font-size: 0.85em; display: block; margin-top: 5px;">
+                        Total time available for negotiations (displayed as MM:SS).
+                    </small>
+                </div>
+                
+                <div class="control-group">
+                    <label>Speed (ms per step)</label>
+                    <input type="range" id="speed" min="50" max="3000" value="500" step="50">
+                    <span class="range-value" id="speed-value">500ms</span>
+                </div>
+                
+                <h3 style="margin: 25px 0 15px 0;">Preference Weights</h3>
+                
+                <div class="control-group">
+                    <label>Skill Complementarity (w_s): <span class="range-value" id="ws-value">0.4</span></label>
+                    <input type="range" id="w-s" min="0" max="1" step="0.1" value="0.4">
+                </div>
+                
+                <div class="control-group">
+                    <label>Social Satisfaction (w_f): <span class="range-value" id="wf-value">0.3</span></label>
+                    <input type="range" id="w-f" min="0" max="1" step="0.1" value="0.3">
+                </div>
+                
+                <div class="control-group">
+                    <label>Personality Balance (w_p): <span class="range-value" id="wp-value">0.3</span></label>
+                    <input type="range" id="w-p" min="0" max="1" step="0.1" value="0.3">
+                </div>
+                
+                <button class="btn-primary" id="start-btn">▶️ Start Simulation</button>
+                <button class="btn-secondary" id="pause-btn" disabled>⏸️ Pause</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <button class="btn-secondary" id="step-back-btn" disabled>⬅️ Back</button>
+                    <button class="btn-secondary" id="step-forward-btn" disabled>➡️ Forward</button>
+                </div>
+                <button class="btn-secondary" id="reset-btn">🔄 Reset</button>
+            </div>
+            
+            <div class="visualization">
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-time">00:00</div>
+                        <div class="stat-label">Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-entities">0</div>
+                        <div class="stat-label">Entities</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-locked">0</div>
+                        <div class="stat-label">Locked Groups</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-welfare">0</div>
+                        <div class="stat-label">Total Welfare</div>
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-bar">
+                        <span id="progress-text">Ready</span>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <h3 style="margin-bottom: 10px;">🗺️ Classroom View</h3>
+                        <div class="grid-container">
+                            <canvas id="simulation-grid" width="500" height="500"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 10px;">💬 Negotiations (Current Step)</h3>
+                        <div class="negotiations-panel" id="negotiations-panel">
+                            <p style="text-align: center; color: #999;">Waiting for simulation to start...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-bottom: 15px;">📋 Current Groups</h3>
+                <div class="groups-list" id="groups-list">
+                    <p style="text-align: center; color: #999; padding: 20px;">
+                        Configure parameters and click "Start Simulation"
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Completion Modal -->
+    <div id="completion-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎉 All Groups Ready!</h2>
+                <p>All students have been successfully grouped!</p>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn-primary" id="view-groups-btn">📊 View Group Details</button>
+                <button class="btn-secondary" id="close-modal-btn">Close</button>
+            </div>
+            
+            <div id="detailed-groups" class="detailed-groups">
+                <!-- Detailed group breakdown will be inserted here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ============================================================================
+        // API CLIENT FOR PYTHON BACKEND
+        // ============================================================================
+        
+        const API_BASE_URL = 'http://localhost:8000';
+        
+        class APIClient {
+            async createSimulation(config) {
+                console.log('Fetching:', `${API_BASE_URL}/simulation/create`, config);
+                const response = await fetch(`${API_BASE_URL}/simulation/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error:', errorText);
+                    throw new Error(`API returned ${response.status}: ${errorText}`);
+                }
+                const result = await response.json();
+                console.log('API Result:', result);
+                return result;
+            }
+            
+            async stepSimulation(simId) {
+                const response = await fetch(`${API_BASE_URL}/simulation/${simId}/step`, {
+                    method: 'POST'
+                });
+                return await response.json();
+            }
+            
+            async getState(simId) {
+                const response = await fetch(`${API_BASE_URL}/simulation/${simId}/state`);
+                return await response.json();
+            }
+            
+            async stepBack(simId) {
+                const response = await fetch(`${API_BASE_URL}/simulation/${simId}/step-back`, {
+                    method: 'POST'
+                });
+                return await response.json();
+            }
+            
+            async stepForward(simId) {
+                const response = await fetch(`${API_BASE_URL}/simulation/${simId}/step-forward`, {
+                    method: 'POST'
+                });
+                return await response.json();
+            }
+            
+            async deleteSimulation(simId) {
+                await fetch(`${API_BASE_URL}/simulation/${simId}`, {
+                    method: 'DELETE'
+                });
+            }
+            
+            async getStudents(simId) {
+                const response = await fetch(`${API_BASE_URL}/simulation/${simId}/students`);
+                return await response.json();
+            }
+            
+            async getFinalGroups(simId) {
+                const response = await fetch(`${API_BASE_URL}/simulation/${simId}/final-groups`);
+                return await response.json();
+            }
+        }
+        
+        // Entity class removed - simulation logic handled by Python backend
+        
+        // CoalitionModel removed - now handled by Python backend via API
+        
+        // ============================================================================
+        // VISUALIZATION
+        // ============================================================================
+        
+        class Visualizer {
+            constructor() {
+                this.canvas = document.getElementById('simulation-grid');
+                this.ctx = this.canvas.getContext('2d');
+                this.model = null;
+                this.animationId = null;
+                this.speed = 500;
+                this.isPaused = false;
+                this.allLockedShown = false;
+                this.apiClient = new APIClient();
+                this.simulationId = null;
+                
+                this.setupEventListeners();
+                this.updateRangeValues();
+            }
+            
+            setupEventListeners() {
+                document.getElementById('start-btn').addEventListener('click', () => this.start());
+                document.getElementById('pause-btn').addEventListener('click', () => this.togglePause());
+                document.getElementById('step-back-btn').addEventListener('click', () => this.stepBack());
+                document.getElementById('step-forward-btn').addEventListener('click', () => this.stepForward());
+                document.getElementById('reset-btn').addEventListener('click', () => this.reset());
+                
+                document.getElementById('speed').addEventListener('input', (e) => {
+                    this.speed = parseInt(e.target.value);
+                    document.getElementById('speed-value').textContent = this.speed + 'ms';
+                });
+                
+                ['w-s', 'w-f', 'w-p'].forEach(id => {
+                    document.getElementById(id).addEventListener('input', () => {
+                        this.updateRangeValues();
+                        this.resetIfRunning();
+                    });
+                });
+                
+                // Parameter change listeners - reset simulation if running
+                ['n-students', 'k-size', 'grid-size', 'total-time'].forEach(id => {
+                    document.getElementById(id).addEventListener('input', () => this.resetIfRunning());
+                });
+                
+                // Modal event listeners
+                document.getElementById('close-modal-btn').addEventListener('click', () => this.closeModal());
+                document.getElementById('view-groups-btn').addEventListener('click', () => this.showDetailedGroups());
+            }
+            
+            updateRangeValues() {
+                const ws = parseFloat(document.getElementById('w-s').value);
+                const wf = parseFloat(document.getElementById('w-f').value);
+                const wp = parseFloat(document.getElementById('w-p').value);
+                
+                document.getElementById('ws-value').textContent = ws.toFixed(1);
+                document.getElementById('wf-value').textContent = wf.toFixed(1);
+                document.getElementById('wp-value').textContent = wp.toFixed(1);
+            }
+            
+            async start() {
+                try {
+                    console.log('Starting simulation...');
+                    const nStudents = parseInt(document.getElementById('n-students').value);
+                    const k = parseInt(document.getElementById('k-size').value);
+                    const gridSize = parseInt(document.getElementById('grid-size').value);
+                    const totalTime = parseFloat(document.getElementById('total-time').value);
+                    const ws = parseFloat(document.getElementById('w-s').value);
+                    const wf = parseFloat(document.getElementById('w-f').value);
+                    const wp = parseFloat(document.getElementById('w-p').value);
+                    
+                    console.log('Creating simulation with params:', {nStudents, k, gridSize, totalTime, ws, wf, wp});
+                    
+                    // Create simulation via API
+                    const result = await this.apiClient.createSimulation({
+                        n_students: nStudents,
+                        k: k,
+                        grid_size: gridSize,
+                        total_time: totalTime,
+                        ws: ws,
+                        wf: wf,
+                        wp: wp
+                    });
+                    console.log('Simulation created:', result);
+                    this.simulationId = result.simulation_id;
+                    
+                    // Get initial state and students
+                    this.model = await this.apiClient.getState(this.simulationId);
+                    this.model.students = await this.apiClient.getStudents(this.simulationId);
+                    this.model.running = true;
+                    this.model.gridSize = gridSize;  // Store grid size for drawing
+                    this.model.k = k;  // Store k for group checking
+                    this.isPaused = false;
+                    this.allLockedShown = false;
+                    
+                    document.getElementById('start-btn').disabled = true;
+                    document.getElementById('pause-btn').disabled = false;
+                    
+                    console.log('Initial model state:', this.model);
+                    
+                    // Render initial state before starting animation
+                    this.render();
+                    
+                    console.log('Starting animation...');
+                    this.animate();
+                } catch (error) {
+                    console.error('Error starting simulation:', error);
+                    alert('Error starting simulation: ' + error.message);
+                }
+            }
+            
+            togglePause() {
+                this.isPaused = !this.isPaused;
+                document.getElementById('pause-btn').textContent = this.isPaused ? '▶️ Resume' : '⏸️ Pause';
+                
+                // Enable/disable step controls
+                document.getElementById('step-back-btn').disabled = !this.isPaused;
+                document.getElementById('step-forward-btn').disabled = !this.isPaused;
+                
+                if (!this.isPaused) {
+                    this.animate();
+                }
+            }
+            
+            async stepBack() {
+                if (this.model && this.simulationId) {
+                    const gridSize = this.model.gridSize;
+                    const k = this.model.k;
+                    const students = this.model.students;
+                    
+                    this.model = await this.apiClient.stepBack(this.simulationId);
+                    
+                    // Preserve properties
+                    this.model.gridSize = gridSize;
+                    this.model.k = k;
+                    this.model.students = students;
+                    
+                    this.render();
+                }
+            }
+            
+            async stepForward() {
+                if (this.model && this.simulationId) {
+                    const gridSize = this.model.gridSize;
+                    const k = this.model.k;
+                    const students = this.model.students;
+                    
+                    this.model = await this.apiClient.stepForward(this.simulationId);
+                    
+                    // Preserve properties
+                    this.model.gridSize = gridSize;
+                    this.model.k = k;
+                    this.model.students = students;
+                    
+                    this.render();
+                }
+            }
+            
+            async reset() {
+                if (this.animationId) {
+                    clearTimeout(this.animationId);
+                }
+                
+                // Delete simulation from backend if it exists
+                if (this.simulationId) {
+                    await this.apiClient.deleteSimulation(this.simulationId);
+                    this.simulationId = null;
+                }
+                
+                this.model = null;
+                this.isPaused = false;
+                this.allLockedShown = false;
+                
+                document.getElementById('start-btn').disabled = false;
+                document.getElementById('pause-btn').disabled = true;
+                document.getElementById('pause-btn').textContent = '⏸️ Pause';
+                document.getElementById('step-back-btn').disabled = true;
+                document.getElementById('step-forward-btn').disabled = true;
+                
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                document.getElementById('groups-list').innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Configure parameters and click "Start Simulation"</p>';
+                document.getElementById('negotiations-panel').innerHTML = '<p style="text-align: center; color: #999;">Waiting for simulation to start...</p>';
+                
+                this.updateStats(0, 0, 0, 0);
+                this.updateProgress(0, 0);
+            }
+            
+            resetIfRunning() {
+                // Only reset if simulation has been started
+                if (this.model) {
+                    this.reset();
+                }
+            }
+            
+            async animate() {
+                if (!this.model || this.isPaused) return;
+                
+                if (this.model.running) {
+                    // Step simulation via API
+                    const gridSize = this.model.gridSize;
+                    const k = this.model.k;
+                    const students = this.model.students;
+                    
+                    this.model = await this.apiClient.stepSimulation(this.simulationId);
+                    
+                    // Preserve properties that aren't in the API response
+                    this.model.gridSize = gridSize;
+                    this.model.k = k;
+                    this.model.students = students;
+                    
+                    this.render();
+                    
+                    this.animationId = setTimeout(() => this.animate(), this.speed);
+                } else {
+                    // Simulation complete - allow history navigation
+                    this.isPaused = true;
+                    document.getElementById('start-btn').disabled = false;
+                    document.getElementById('pause-btn').disabled = true;
+                    document.getElementById('step-back-btn').disabled = false;
+                    document.getElementById('step-forward-btn').disabled = false;
+                    this.updateProgress(100, 'Complete');
+                }
+            }
+            
+            render() {
+                this.drawGrid();
+                this.renderNegotiations();
+                
+                this.updateStats(
+                    this.model.elapsed_time,
+                    this.model.entities.length,
+                    this.model.entities.filter(e => e.state === 'locked' || e.state === 'locked (backup)').length,
+                    this.model.total_welfare
+                );
+                this.updateProgress(
+                    (this.model.elapsed_time / this.model.total_time) * 100,
+                    `${this.formatTime(this.model.elapsed_time)} / ${this.formatTime(this.model.total_time)}`
+                );
+                this.updateGroupsList();
+                
+                // Check if all groups are locked
+                this.checkAllGroupsLocked();
+            }
+            
+            drawGrid() {
+                const cellSize = this.canvas.width / this.model.gridSize;
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Check if there was a deadlock in this step
+                const deadlockActions = this.model.negotiations.filter(n => n.type === 'deadlock-breakup');
+                const brokenEntityIds = new Set(deadlockActions.map(a => a.entityId));
+                
+                // Draw grid lines
+                this.ctx.strokeStyle = '#e0e0e0';
+                this.ctx.lineWidth = 1;
+                for (let i = 0; i <= this.model.gridSize; i++) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(i * cellSize, 0);
+                    this.ctx.lineTo(i * cellSize, this.canvas.height);
+                    this.ctx.stroke();
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, i * cellSize);
+                    this.ctx.lineTo(this.canvas.width, i * cellSize);
+                    this.ctx.stroke();
+                }
+                
+                // Draw entities
+                const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#fee140', '#30cfd0'];
+                
+                // Helper function to get display name
+                const getDisplayName = (entity, entities) => {
+                    if (entity.size === 1) {
+                        return entity.members[0].name;
+                    } else {
+                        // Find the group number
+                        const multiMemberEntities = entities.filter(e => e.size > 1);
+                        const groupNum = multiMemberEntities.indexOf(entity) + 1;
+                        return `Group ${groupNum}`;
+                    }
+                };
+                
+                for (let i = 0; i < this.model.entities.length; i++) {
+                    const entity = this.model.entities[i];
+                    const color = colors[i % colors.length];
+                    const isLocked = entity.state === 'locked' || entity.state === 'locked (backup)';
+                    
+                    const x = entity.x * cellSize + cellSize / 2;
+                    const y = entity.y * cellSize + cellSize / 2;
+                    
+                    // Draw rounded rectangle background
+                    const padding = 5;
+                    const displayName = getDisplayName(entity, this.model.entities);
+                    this.ctx.font = 'bold 12px sans-serif';
+                    const textWidth = this.ctx.measureText(displayName).width;
+                    const rectWidth = textWidth + padding * 2;
+                    const rectHeight = 20;
+                    
+                    // Background
+                    this.ctx.fillStyle = isLocked ? color : color + '80';
+                    this.ctx.beginPath();
+                    this.ctx.roundRect(x - rectWidth/2, y - rectHeight/2, rectWidth, rectHeight, 10);
+                    this.ctx.fill();
+                    
+                    // Border
+                    this.ctx.strokeStyle = isLocked ? '#333' : color;
+                    this.ctx.lineWidth = isLocked ? 2 : 1;
+                    this.ctx.stroke();
+                    
+                    // Draw name/group number
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    this.ctx.fillText(displayName, x, y);
+                    
+                    // Draw size indicator for groups
+                    if (entity.size > 1) {
+                        this.ctx.font = 'bold 10px sans-serif';
+                        this.ctx.fillStyle = '#333';
+                        this.ctx.fillText(`(${entity.size})`, x, y + rectHeight/2 + 10);
+                    }
+                    
+                    // Highlight broken entities with red flash effect
+                    if (brokenEntityIds.has(entity.id)) {
+                        this.ctx.strokeStyle = '#ff0000';
+                        this.ctx.lineWidth = 4;
+                        this.ctx.beginPath();
+                        this.ctx.roundRect(x - rectWidth/2 - 5, y - rectHeight/2 - 5, rectWidth + 10, rectHeight + 10, 12);
+                        this.ctx.stroke();
+                    }
+                }
+                
+                // Draw deadlock overlay if there was a deadlock
+                if (deadlockActions.length > 0) {
+                    this.showDeadlockOverlay(deadlockActions);
+                }
+            }
+            
+            showDeadlockOverlay(deadlockActions) {
+                // Draw semi-transparent red overlay
+                this.ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw "DEADLOCK RESOLVED" banner
+                this.ctx.fillStyle = 'rgba(255, 0, 0, 0.9)';
+                const bannerHeight = 60;
+                const bannerY = this.canvas.height / 2 - bannerHeight / 2;
+                this.ctx.fillRect(0, bannerY, this.canvas.width, bannerHeight);
+                
+                // Draw text
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = 'bold 24px sans-serif';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText('⚠️ DEADLOCK DETECTED', this.canvas.width / 2, bannerY + 20);
+                
+                // Draw details about broken groups
+                this.ctx.font = '14px sans-serif';
+                const brokenGroups = deadlockActions.map(a => a.entityName).join(', ');
+                this.ctx.fillText(`Broke up: ${brokenGroups}`, this.canvas.width / 2, bannerY + 42);
+            }
+            
+            formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            
+            updateStats(elapsedTime, entities, locked, welfare) {
+                document.getElementById('stat-time').textContent = this.formatTime(elapsedTime);
+                document.getElementById('stat-entities').textContent = entities;
+                document.getElementById('stat-locked').textContent = locked;
+                document.getElementById('stat-welfare').textContent = welfare.toFixed(1);
+            }
+            
+            updateProgress(percent, text) {
+                const progressBar = document.getElementById('progress-bar');
+                const progressText = document.getElementById('progress-text');
+                
+                progressBar.style.width = percent + '%';
+                progressText.textContent = text || 'Ready';
+            }
+            
+            renderNegotiations() {
+                const panel = document.getElementById('negotiations-panel');
+                
+                if (!this.model || this.model.negotiations.length === 0) {
+                    panel.innerHTML = '<p style="text-align: center; color: #999;">No negotiations this step</p>';
+                    return;
+                }
+                
+                panel.innerHTML = '';
+                
+                for (const action of this.model.negotiations) {
+                    const item = document.createElement('div');
+                    item.className = `negotiation-item ${action.type}`;
+                    
+                    let content = '';
+                    
+                    if (action.type === 'offer') {
+                        content = `<span class="entity-label">${action.initiatorName}</span> → ` +
+                                 `<span class="entity-label">${action.targetName}</span><br>` +
+                                 `💼 <strong>Offer:</strong> Merge groups<br>` +
+                                 `📊 Current utility: <span class="utility-score">${action.currentUtility}</span>, ` +
+                                 `Merged: <span class="utility-score">${action.mergedUtility}</span>, ` +
+                                 `Threshold: ${action.threshold}`;
+                    } else if (action.type === 'accept') {
+                        content = `<span class="entity-label">${action.acceptorName}</span> ✅ <strong>Accepted</strong> offer from ` +
+                                 `<span class="entity-label">${action.fromName}</span><br>` +
+                                 `📊 Offer utility: <span class="utility-score">${action.offerUtility}</span> ≥ Threshold: ${action.threshold}`;
+                    } else if (action.type === 'reject') {
+                        content = `<span class="entity-label">${action.rejectorName}</span> ❌ <strong>Rejected</strong> offer from ` +
+                                 `<span class="entity-label">${action.fromName}</span><br>` +
+                                 `💭 Reason: ${action.reason}`;
+                    } else if (action.type === 'merge') {
+                        content = `🤝 <strong>MERGE COMPLETE:</strong> ` +
+                                 `<span class="entity-label">${action.mergerName}</span> + ` +
+                                 `<span class="entity-label">${action.mergeeName}</span><br>` +
+                                 `📏 Sizes: ${action.oldSizes[0]} + ${action.oldSizes[1]} = <span class="utility-score">${action.newSize}</span>`;
+                    } else if (action.type === 'reject-offer') {
+                        content = `<span class="entity-label">${action.initiatorName}</span> 🚫 <strong>Chose not to offer</strong> to ` +
+                                 `<span class="entity-label">${action.targetName}</span><br>` +
+                                 `💭 ${action.reason} (Utility: ${action.mergedUtility} < Threshold: ${action.threshold})`;
+                    } else if (action.type === 'deadlock-breakup') {
+                        content = `💥 <strong>DEADLOCK DETECTED:</strong> ` +
+                                 `<span class="entity-label">${action.entityName}</span> broken up<br>` +
+                                 `📏 Size: ${action.size}, Utility: <span class="utility-score">${action.utility}</span><br>` +
+                                 `💭 ${action.reason}`;
+                    }
+                    
+                    item.innerHTML = content;
+                    panel.appendChild(item);
+                }
+            }
+            
+            getEntityById(id) {
+                return this.model.entities.find(e => e.id === id);
+            }
+            
+            updateGroupsList() {
+                const groupsList = document.getElementById('groups-list');
+                groupsList.innerHTML = '';
+                
+                for (let i = 0; i < this.model.entities.length; i++) {
+                    const entity = this.model.entities[i];
+                    const groupCard = document.createElement('div');
+                    groupCard.className = 'group-card';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'group-header';
+                    const displayName = entity.size === 1 ? entity.members[0].name : `Group ${i + 1}`;
+                    header.textContent = `${displayName} - ${entity.state.toUpperCase()} (${entity.size}/${this.model.k})`;
+                    groupCard.appendChild(header);
+                    
+                    const membersDiv = document.createElement('div');
+                    membersDiv.className = 'group-members';
+                    
+                    for (const student of entity.members) {
+                        const badge = document.createElement('div');
+                        badge.className = 'student-badge' + (student.isLeader ? ' leader' : '');
+                        badge.innerHTML = `${student.isLeader ? '👑' : '👤'} ${student.name}`;
+                        membersDiv.appendChild(badge);
+                    }
+                    
+                    groupCard.appendChild(membersDiv);
+                    groupsList.appendChild(groupCard);
+                }
+            }
+            
+            checkAllGroupsLocked() {
+                if (!this.model || this.model.entities.length === 0) return;
+                
+                const allLocked = this.model.entities.every(e => 
+                    e.state === 'locked' || e.state === 'locked (backup)'
+                );
+                
+                // Only show modal once when all groups become locked
+                if (allLocked && !this.allLockedShown) {
+                    this.allLockedShown = true;
+                    this.showCompletionModal();
+                }
+            }
+            
+            showCompletionModal() {
+                const modal = document.getElementById('completion-modal');
+                modal.classList.add('show');
+            }
+            
+            closeModal() {
+                const modal = document.getElementById('completion-modal');
+                modal.classList.remove('show');
+                document.getElementById('detailed-groups').classList.remove('show');
+            }
+            
+            async showDetailedGroups() {
+                // Fetch final groups with utilities
+                const finalGroups = await this.apiClient.getFinalGroups(this.simulationId);
+                
+                const detailedGroupsDiv = document.getElementById('detailed-groups');
+                detailedGroupsDiv.innerHTML = '';
+                detailedGroupsDiv.classList.add('show');
+                
+                for (const group of finalGroups) {
+                    const groupCard = document.createElement('div');
+                    groupCard.className = 'detailed-group-card';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'detailed-group-header';
+                    header.innerHTML = `
+                        <span>${group.displayName}</span>
+                        <span style="font-size: 0.8em; color: #666;">${group.size} members - ${group.state.toUpperCase()}</span>
+                    `;
+                    groupCard.appendChild(header);
+                    
+                    // Calculate group statistics
+                    const groupMemberIds = new Set(group.members.map(m => m.id));
+                    const leaderCount = group.members.filter(m => m.isLeader).length;
+                    const followerCount = group.size - leaderCount;
+                    const leaderRatioDisplay = `${leaderCount}:${followerCount}`;
+                    
+                    // Group stats section with utility
+                    const statsDiv = document.createElement('div');
+                    statsDiv.style.cssText = 'background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;';
+                    statsDiv.innerHTML = `
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.85em; color: #666; margin-bottom: 5px;">Group Size</div>
+                            <div style="font-size: 1.3em; font-weight: 600; color: #28a745;">${group.size}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.85em; color: #666; margin-bottom: 5px;">Leader Ratio</div>
+                            <div style="font-size: 1.3em; font-weight: 600; color: #667eea;">${leaderRatioDisplay}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.85em; color: #666; margin-bottom: 5px;">Group Utility</div>
+                            <div style="font-size: 1.3em; font-weight: 600; color: #ff6b6b;">${group.groupUtility}</div>
+                        </div>
+                    `;
+                    groupCard.appendChild(statsDiv);
+                    
+                    const membersContainer = document.createElement('div');
+                    membersContainer.className = 'member-details';
+                    
+                    // Sort members: leaders first, then followers
+                    const sortedMembers = [...group.members].sort((a, b) => {
+                        if (a.isLeader && !b.isLeader) return -1;
+                        if (!a.isLeader && b.isLeader) return 1;
+                        return 0;
+                    });
+                    
+                    for (const student of sortedMembers) {
+                        const memberCard = document.createElement('div');
+                        memberCard.className = 'member-card' + (student.isLeader ? ' leader' : '');
+                        
+                        const memberName = document.createElement('div');
+                        memberName.className = 'member-name';
+                        memberName.innerHTML = `
+                            ${student.isLeader ? '👑' : '👤'} ${student.name}
+                            ${student.isLeader ? '<span style="font-size: 0.8em; color: #667eea;">(Leader)</span>' : ''}
+                            <span style="float: right; font-size: 0.85em; color: #ff6b6b; font-weight: 600;">Utility: ${student.utility}</span>
+                        `;
+                        memberCard.appendChild(memberName);
+                        
+                        // Skills
+                        const skillsDiv = document.createElement('div');
+                        skillsDiv.className = 'trait-item';
+                        skillsDiv.innerHTML = '<span class="trait-label">Skills:</span>';
+                        const skillsBar = document.createElement('div');
+                        skillsBar.className = 'skills-bar';
+                        ['Maths', 'Coding', 'Writing'].forEach((label, idx) => {
+                            const skillContainer = document.createElement('div');
+                            skillContainer.style.flex = '1';
+                            
+                            const bar = document.createElement('div');
+                            bar.className = 'skill-bar';
+                            const fill = document.createElement('div');
+                            fill.className = 'skill-fill';
+                            fill.style.width = (student.skills[idx] * 100) + '%';
+                            bar.appendChild(fill);
+                            
+                            const labelDiv = document.createElement('div');
+                            labelDiv.className = 'skill-label';
+                            labelDiv.textContent = label;
+                            
+                            skillContainer.appendChild(bar);
+                            skillContainer.appendChild(labelDiv);
+                            skillsBar.appendChild(skillContainer);
+                        });
+                        skillsDiv.appendChild(skillsBar);
+                        memberCard.appendChild(skillsDiv);
+                        
+                        // Friends in this group only
+                        const friendsDiv = document.createElement('div');
+                        friendsDiv.className = 'trait-item';
+                        friendsDiv.innerHTML = '<span class="trait-label">Friends in Group:</span>';
+                        const friendsList = document.createElement('div');
+                        friendsList.className = 'friends-list';
+                        
+                        // Find friends that are in this group
+                        const friendsInGroup = [];
+                        for (const friendId of student.friends) {
+                            if (groupMemberIds.has(friendId)) {
+                                const friend = this.model.students.find(s => s.id === friendId);
+                                if (friend) {
+                                    friendsInGroup.push(friend);
+                                }
+                            }
+                        }
+                        
+                        if (friendsInGroup.length > 0) {
+                            for (const friend of friendsInGroup) {
+                                const badge = document.createElement('span');
+                                badge.className = 'friend-badge';
+                                badge.textContent = friend.name;
+                                friendsList.appendChild(badge);
+                            }
+                        } else {
+                            friendsList.innerHTML = '<span class="trait-value">None</span>';
+                        }
+                        friendsDiv.appendChild(friendsList);
+                        memberCard.appendChild(friendsDiv);
+                        
+                        membersContainer.appendChild(memberCard);
+                    }
+                    
+                    groupCard.appendChild(membersContainer);
+                    detailedGroupsDiv.appendChild(groupCard);
+                }
+            }
+        }
+        
+        // Initialize
+        console.log('Initializing visualizer...');
+        const visualizer = new Visualizer();
+        console.log('Visualizer initialized:', visualizer);
+    </script>
+</body>
+</html>
